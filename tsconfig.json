@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "lib": [ "es2017" ],
+    "module": "commonjs",
+    "declaration": true,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "strict": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "target": "ES5",
+    "sourceMap": true,
+    "strictNullChecks": false,
+    "moduleResolution": "node",
+    "esModuleInterop": true
+  },
+  "include": [
+    "index.ts",
+    "src/**/*",
+    "test/**/*"
+  ]
+}

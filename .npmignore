@@ -1,0 +1,4 @@
+.vscode/
+coverage/
+src/
+tests/
