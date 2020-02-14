@@ -257,7 +257,7 @@ export class TextFormatter extends FormatterBase {
           return undefined
         })()
         lines.push({
-          boolean_value: evaluateComparison(
+          bool_value: evaluateComparison(
             int1,
             ast.children[1].allText,
             int2
@@ -269,7 +269,7 @@ export class TextFormatter extends FormatterBase {
         const sublines = []
         this.processAst(ast.children, sublines)
         lines.push({
-          boolean_value: evaluateComparison(
+          bool_value: evaluateComparison(
             sublines[0].double_value,
             ast.children[1].allText,
             sublines[1].double_value
@@ -281,7 +281,7 @@ export class TextFormatter extends FormatterBase {
         const sublines = []
         this.processAst(ast.children, sublines)
         lines.push({
-          boolean_value: evaluateComparison(
+          bool_value: evaluateComparison(
             sublines[0].string_value,
             ast.children[1].allText,
             sublines[1].string_value
@@ -293,7 +293,7 @@ export class TextFormatter extends FormatterBase {
         const sublines = []
         this.processAst(ast.children, sublines)
         lines.push({
-          boolean_value: evaluateComparison(
+          bool_value: evaluateComparison(
             sublines[0].bytes_value,
             ast.children[1].allText,
             sublines[1].bytes_value
@@ -305,7 +305,7 @@ export class TextFormatter extends FormatterBase {
         const sublines = []
         this.processAst(ast.children, sublines)
         lines.push({
-          boolean_value: evaluateComparison(
+          bool_value: evaluateComparison(
             sublines[0].bool_value,
             ast.children[1].allText,
             sublines[1].bool_value
@@ -321,7 +321,7 @@ export class TextFormatter extends FormatterBase {
         const sublines = []
         this.processAst(ast.children, sublines)
         lines.push({
-          boolean_value: evaluateComparison(
+          bool_value: evaluateComparison(
             sublines[0].null_value,
             ast.children[1].allText,
             sublines[1].null_value
@@ -335,7 +335,7 @@ export class TextFormatter extends FormatterBase {
         if (sublines[0].list_value) {
           // List eval
           lines.push({
-            boolean_value: deepArrayEvaluateComparison(
+            bool_value: deepArrayEvaluateComparison(
               sublines[0].list_value,
               ast.children[1].allText,
               sublines[1].list_value
@@ -346,7 +346,7 @@ export class TextFormatter extends FormatterBase {
 
         // Object eval
         lines.push({
-          boolean_value: deepObjEvaluateComparison(
+          bool_value: deepObjEvaluateComparison(
             sublines[0].map_value,
             ast.children[1].allText,
             sublines[1].map_value
