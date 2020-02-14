@@ -28,14 +28,16 @@ export function celSpecGrammar(myna: any): any {
       m.seq(m.opt('-'), m.digits.oneOrMore, m.opt(m.seq(m.char('.'), m.digits.oneOrMore)), m.char('e'), m.char('+-'), m.digits.oneOrMore),
       // -2.3
       // 2.0
-      m.seq(m.opt('-'), m.digits.oneOrMore, m.char('.'), m.digits.oneOrMore),
+      // .99
+      m.seq(m.opt('-'), m.digits.zeroOrMore, m.char('.'), m.digits.oneOrMore),
     ).ast
     
     const character = m.choice(
       m.letters,
       m.digits,
       m.char('+-!\\[]()'),
-      m.char('áàéίσδοιςÿ')
+      m.char('áàéίασςιδοτÿ'),
+      m.char('\x00\x01'),
     )
     this.string = m.choice(
       m.seq(`'`, character.zeroOrMore, m.seq(`'`)),
@@ -87,10 +89,10 @@ export function celSpecGrammar(myna: any): any {
     this.comparable = m.choice(
       '==',
       '!=',
-      '>',
       '>=',
-      '<',
       '<=',
+      '>',
+      '<',
     ).ast
 
     this.comparisonInt64 = m.seq(

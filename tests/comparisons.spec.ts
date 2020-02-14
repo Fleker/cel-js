@@ -832,3 +832,729 @@ describe('comparisons.lt_literal', () => {
     }
   })
 })
+
+describe('comparisons.gt_literal', () => {
+  test('gt_int', () => {
+    const expr = "42 > -42"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gt_int', () => {
+    const expr = "0 > 0"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gt_uint', () => {
+    const expr = "48u > 46u"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gt_uint', () => {
+    const expr = "0u > 999u"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gt_double', () => {
+    const expr = "1e+1 > 1e+0"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gt_double', () => {
+    const expr = ".99 > 9.9e-1"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gt_string_case', () => {
+    const expr = "'abc' > 'aBc'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gt_string_to_empty', () => {
+    const expr = "'A' > ''"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gt_string_empty_to_empty', () => {
+    const expr = "'' > ''"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gt_string_unicode', () => {
+    const expr = "'α' > 'omega'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gt_bytes_one', () => {
+    const expr = "b'\x01' > b'\x00'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gt_bytes_one_to_empty', () => {
+    const expr = "b'\x00' > b''"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gt_bytes_sorting', () => {
+    const expr = "b'\x00\x01' > b'\x01'"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gt_bool_true_false', () => {
+    const expr = "true > false"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gt_bool_false_true', () => {
+    const expr = "false > true"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gt_bool_same', () => {
+    const expr = "true > true"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gt_null_unsupported', () => {
+    const expr = "null > null"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+
+  test('gt_list_unsupported', () => {
+    const expr = "[0] > [1]"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+
+  test('gt_map_unsupported', () => {
+    const expr = "{0:'a'} > {1:'b'}"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+
+  test('gt_mixed_types_error', () => {
+    const expr = "'foo' > 1024"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+})
+
+describe('lte_literal', () => {
+  test('lte_int_lt', () => {
+    const expr = "0 <= 1"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_int_eq', () => {
+    const expr = "1 <= 1"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_lte_int_gt', () => {
+    const expr = "1 <= -1"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_uint_lt', () => {
+    const expr = "0u <= 1u"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_uint_eq', () => {
+    const expr = "1u <= 1u"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_lte_uint_gt', () => {
+    const expr = "1u <= 0u"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_double_lt', () => {
+    const expr = "0.0 <= 0.1e-31"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_double_eq', () => {
+    const expr = "0.0 <= 0e-1"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_lte_double_gt', () => {
+    const expr = "1.0 <= 0.99"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_string_empty', () => {
+    const expr = "'' <= ''"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_string_from_empty', () => {
+    const expr = "'' <= 'a'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_lte_string_to_empty', () => {
+    const expr = "'a' <= ''"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_string_lexicographical', () => {
+    const expr = "'aBc' <= 'abc'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_string_unicode_eq', () => {
+    const expr = "'α' <= 'α'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_string_unicode_lt', () => {
+    const expr = "'a' <= 'α'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_lte_string_unicode', () => {
+    const expr = "'α' <= 'a'"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_bytes_empty', () => {
+    const expr = "b'' <= b'\x00'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_lte_bytes_length', () => {
+    const expr = "b'\x01\x00' <= b'\x01'"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_bool_false_true', () => {
+    const expr = "false <= true"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_bool_false_false', () => {
+    const expr = "false <= false"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_bool_true_false', () => {
+    const expr = "true <= false"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('lte_null_unsupported', () => {
+    const expr = "null <= null"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+
+  test('lte_list_unsupported', () => {
+    const expr = "[0] <= [1]"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+
+  test('lte_map_unsupported', () => {
+    const expr = "{0:'a'} <= {1:'b'}"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+
+  test('lte_mixed_types_error', () => {
+    const expr = "'foo' <= 1024"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+})
+
+describe('gte_literal', () => {
+  test('gte_int_gt', () => {
+    const expr = "0 >= -1"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_int_eq', () => {
+    const expr = "999 >= 999"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gte_int_lt', () => {
+    const expr = "999 >= 1000"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_uint_gt', () => {
+    const expr = "1u >= 0u"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_uint_eq', () => {
+    const expr = "0u >= 0u"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gte_uint_lt', () => {
+    const expr = "1u >= 10u"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_double_gt', () => {
+    const expr = "1e+1 >= 1e+0"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_double_eq', () => {
+    const expr = "9.80665 >= 9.80665e+0"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gte_double_lt', () => {
+    const expr = "0.9999 >= 1.0"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_string_empty', () => {
+    const expr = "'' >= ''"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_string_to_empty', () => {
+    const expr = "'a' >= ''"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_string_empty_to_nonempty', () => {
+    const expr = "'' >= 'a'"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_string_length', () => {
+    const expr = "'abcd' >= 'abc'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gte_string_lexicographical', () => {
+    const expr = "'abc' >= 'abd'"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_string_unicode_eq', () => {
+    const expr = "'τ' >= 'τ'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_string_unicode_gt', () => {
+    const expr = "'τ' >= 't'"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_get_string_unicode', () => {
+    const expr = "'t' >= 'τ'"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_bytes_to_empty', () => {
+    const expr = "b'\x00' >= b''"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gte_bytes_empty_to_nonempty', () => {
+    const expr = "b'' >= b'\x00'"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_bytes_samelength', () => {
+    const expr = "b'\x00\x01' >= b'\x01\x00'"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_bool_gt', () => {
+    const expr = "true >= false"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_bool_eq', () => {
+    const expr = "true >= true"
+    const expected = {
+      boolean_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_gte_bool_lt', () => {
+    const expr = "false >= true"
+    const expected = {
+      boolean_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('gte_null_unsupported', () => {
+    const expr = "null >= null"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+
+  test('gte_list_unsupported', () => {
+    const expr = "[0] >= [1]"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+
+  test('gte_map_unsupported', () => {
+    const expr = "{0:'a'} >= {1:'b'}"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+
+  test('gte_mixed_types_error', () => {
+    const expr = "'foo' >= 1024"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+})

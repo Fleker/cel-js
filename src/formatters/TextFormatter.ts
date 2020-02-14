@@ -234,19 +234,45 @@ export class TextFormatter extends FormatterBase {
       case 'comparisonUint64': {
         // This should include three children
         // [int64, comparable, int64]
-        const [int1, op, int2] = ast.children.map(child => child.allText)
+        const sublines = []
+        // console.log(ast.children)
+        this.processAst(ast.children, sublines)
+        // console.log(sublines)
+        const int1 = (() => {
+          if ('int64_value' in sublines[0]) {
+            return sublines[0].int64_value
+          }
+          if ('uint64_value' in sublines[0]) {
+            return sublines[0].uint64_value
+          }
+          return undefined
+        })()
+        const int2 = (() => {
+          if ('int64_value' in sublines[1]) {
+            return sublines[1].int64_value
+          }
+          if ('uint64_value' in sublines[1]) {
+            return sublines[1].uint64_value
+          }
+          return undefined
+        })()
         lines.push({
-          boolean_value: evaluateComparison(int1, op, int2)
+          boolean_value: evaluateComparison(
+            int1,
+            ast.children[1].allText,
+            int2
+          )
         })
         return lines
       }
       case 'comparisonDouble': {
-        const [num1, op, num2] = ast.children.map(child => child.allText)
+        const sublines = []
+        this.processAst(ast.children, sublines)
         lines.push({
           boolean_value: evaluateComparison(
-            parseFloat(num1),
-            op,
-            parseFloat(num2)
+            sublines[0].double_value,
+            ast.children[1].allText,
+            sublines[1].double_value
           )
         })
         return lines
