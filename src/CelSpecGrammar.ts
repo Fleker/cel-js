@@ -35,7 +35,7 @@ export function celSpecGrammar(myna: any): any {
       m.letters,
       m.digits,
       m.char('+-!\\[]()'),
-      m.char('ÿ')
+      m.char('áàéίσδοιςÿ')
     )
     this.string = m.choice(
       m.seq(`'`, character.zeroOrMore, m.seq(`'`)),
@@ -61,14 +61,17 @@ export function celSpecGrammar(myna: any): any {
       this.double,
       this.boolean,
     )
+    const primitiveArray = m.seq(
+      primitive, m.opt(','), m.opt(m.space)
+    )
     this.list = m.seq(
       '[',
-      primitive.zeroOrMore,
+      primitiveArray.zeroOrMore,
       ']'
     ).ast
 
     const entry = m.seq(
-      this.string,
+      m.choice(this.string, this.int64),
       ':',
       primitive,
       m.opt(',')
@@ -81,7 +84,99 @@ export function celSpecGrammar(myna: any): any {
 
     this.variable = m.seq(m.letterLower.oneOrMore).ast
 
+    this.comparable = m.choice(
+      '==',
+      '!=',
+      '>',
+      '>=',
+      '<',
+      '<=',
+    ).ast
+
+    this.comparisonInt64 = m.seq(
+      this.int64,
+      m.opt(m.space),
+      this.comparable,
+      m.opt(m.space),
+      this.int64
+    ).ast
+
+    this.comparisonUint64 = m.seq(
+      this.uint64,
+      m.opt(m.space),
+      this.comparable,
+      m.opt(m.space),
+      this.uint64
+    ).ast
+
+    this.comparisonDouble = m.seq(
+      this.double,
+      m.opt(m.space),
+      this.comparable,
+      m.opt(m.space),
+      this.double
+    ).ast
+
+    this.comparisonString = m.seq(
+      m.choice(this.string, this.rawString),
+      m.opt(m.space),
+      this.comparable,
+      m.opt(m.space),
+      m.choice(this.string, this.rawString)
+    ).ast
+
+    this.comparisonByteString = m.seq(
+      this.byteString,
+      m.opt(m.space),
+      this.comparable,
+      m.opt(m.space),
+      this.byteString
+    ).ast
+
+    this.comparisonBoolean = m.seq(
+      this.boolean,
+      m.opt(m.space),
+      this.comparable,
+      m.opt(m.space),
+      this.boolean
+    ).ast
+
+    this.comparisonNull = m.seq(
+      this.null,
+      m.opt(m.space),
+      this.comparable,
+      m.opt(m.space),
+      this.null
+    ).ast
+
+    this.deepCompareObj = m.seq(
+      m.choice(this.list, this.map),
+      m.opt(m.space),
+      this.comparable,
+      m.opt(m.space),
+      m.choice(this.list, this.map),
+    ).ast
+
+    this.comparisonTypeMismatch = m.seq(
+      primitive,
+      m.opt(m.space),
+      this.comparable,
+      m.opt(m.space),
+      primitive
+    ).ast
+
     this.expr = m.choice(
+      // Groups
+      this.comparisonInt64,
+      this.comparisonUint64,
+      this.comparisonDouble,
+      this.comparisonString,
+      this.comparisonByteString,
+      this.comparisonBoolean,
+      this.comparisonNull,
+      this.deepCompareObj,
+      this.comparisonTypeMismatch, // Catch rest
+      // Individuals
       this.int64,
       this.uint64,
       this.double,
@@ -92,7 +187,8 @@ export function celSpecGrammar(myna: any): any {
       this.null,
       this.list,
       this.map,
-      this.variable
+      this.variable,
+      this.comparable,
     ).oneOrMore
   }
 
