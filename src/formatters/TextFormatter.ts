@@ -165,15 +165,7 @@ export class TextFormatter extends FormatterBase {
       case 'list': {
         const sublines = []
         this.processAst(ast.children, sublines);
-        if (sublines.length === 1) {
-          lines.push({
-            list_value: {
-              values: sublines[0]
-            }
-          })
-          return lines
-        }
-        if (sublines.length > 1) {
+        if (sublines.length >= 1) {
           lines.push({
             list_value: {
               values: [...sublines]
@@ -189,19 +181,7 @@ export class TextFormatter extends FormatterBase {
       case 'map': {
         const sublines = []
         this.processAst(ast.children, sublines);
-        if (sublines.length === 2) {
-          // Does not work for >1 entry
-          lines.push({
-            map_value: {
-              entries: {
-                key: sublines[0],
-                value: sublines[1]
-              }
-            }
-          })
-          return lines
-        }
-        if (sublines.length > 2) {
+        if (sublines.length >= 2) {
           const entries = []
           // Iterate through processed elements in pairs
           for (let i = 0; i < sublines.length; i += 2) {

@@ -231,7 +231,7 @@ describe('basic.self_eval_nonzeroish', () => {
     const expr = '[-1]'
     const expected = {
       list_value: {
-        values: { int64_value: -1 }
+        values: [{ int64_value: -1 }]
       }
     }
     
@@ -243,7 +243,7 @@ describe('basic.self_eval_nonzeroish', () => {
     const expr = '[-1.0]'
     const expected = {
       list_value: {
-        values: { double_value: -1 }
+        values: [{ double_value: -1 }]
       }
     }
 
@@ -255,7 +255,7 @@ describe('basic.self_eval_nonzeroish', () => {
     const expr = '["-1"]'
     const expected = {
       list_value: {
-        values: { string_value: `-1` }
+        values: [{ string_value: `-1` }]
       }
     }
 
@@ -267,10 +267,10 @@ describe('basic.self_eval_nonzeroish', () => {
     const expr = '{"k":"v"}'
     const expected = {
       map_value: {
-        entries: {
+        entries: [{
           key: { string_value: "k" },
           value: { string_value: "v" }
-        }
+        }]
       }
     }
 
