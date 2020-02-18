@@ -1,5 +1,10 @@
 # Common Expression Language - JS
 
+## Supported functionality (subset)
+[x] Basic types and primitives
+[~] Comparisons - equality, less than, greater than
+[ ] etc
+
 ## Usage
 
 ### Create a list
