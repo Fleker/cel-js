@@ -1035,7 +1035,7 @@ describe('comparisons.gt_literal', () => {
   })
 })
 
-describe('lte_literal', () => {
+describe('comparisons.lte_literal', () => {
   test('lte_int_lt', () => {
     const expr = "0 <= 1"
     const expected = {
@@ -1287,7 +1287,7 @@ describe('lte_literal', () => {
   })
 })
 
-describe('gte_literal', () => {
+describe('comparisons.gte_literal', () => {
   test('gte_int_gt', () => {
     const expr = "0 >= -1"
     const expected = {
@@ -1557,4 +1557,118 @@ describe('gte_literal', () => {
       expect(e.message).toBe('{ message: "no such overload" }')
     }
   })
+})
+
+describe('comparisons.in_list_literal', () => {
+  it('elem_not_in_empty_list', () => {
+    const expr = "'empty' in []"
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('elem_in_list', () => {
+    const expr = "'elem' in ['elem', 'elemA', 'elemB']"
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('elem_not_in_list', () => {
+    const expr = "'not' in ['elem1', 'elem2', 'elem3']"
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('elem_in_mixed_type_list', () => {
+    // Set membership tests should succeed if the 'elem' exists in a mixed
+    // element type list.
+    const expr = "'elem' in [1, 'elem', 2]"
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  // Skip this test as JS is fine with the element not being present
+  it.skip('elem_in_mixed_type_list_error', () => {
+    // Set membership tests should error if the 'elem' does not exist in a
+    // mixed element type list as containment is equivalent to the macro
+    // exists() behavior.
+    const expr = "'elem' in [1u, 'str', 2, b'bytes']"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+})
+
+describe('comparisons.in_map_literal', () => {
+  it('key_not_in_empty_map', () => {
+    const expr = "'empty' in {}"
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('key_in_map', () => {
+    const expr = "'key' in {'key':'1', 'other':'2'}"
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('key_not_in_map', () => {
+    const expr = "'key' in {'lock':1, 'gate':2}"
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('key_in_mixed_key_type_map', () => {
+    const expr = "'key' in {3:3.0, 'key':2u}"
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it.skip('key_in_mixed_key_type_map_error', () => {
+    const expr = "'key' in {1u:'str', 2:b'bytes'}"
+    try {
+      const cel = genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
+})
+
+describe('comparisons.bound', () => {
+
 })

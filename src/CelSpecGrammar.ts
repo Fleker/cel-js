@@ -73,10 +73,11 @@ export function celSpecGrammar(myna: any): any {
     ).ast
 
     const entry = m.seq(
-      m.choice(this.string, this.int64),
+      primitive,
       ':',
       primitive,
-      m.opt(',')
+      m.opt(','),
+      m.opt(m.space)
     )
     this.map = m.seq(
       '{',
@@ -159,6 +160,7 @@ export function celSpecGrammar(myna: any): any {
       m.choice(this.list, this.map),
     ).ast
 
+    // This will catch primitive comparisons not matched above
     this.comparisonTypeMismatch = m.seq(
       primitive,
       m.opt(m.space),
@@ -167,7 +169,16 @@ export function celSpecGrammar(myna: any): any {
       primitive
     ).ast
 
+    this.elementInObj = m.seq(
+      primitive,
+      m.space,
+      'in',
+      m.space,
+      m.choice(this.list, this.map)
+    ).ast
+
     this.expr = m.choice(
+      this.elementInObj,
       // Groups
       this.comparisonInt64,
       this.comparisonUint64,

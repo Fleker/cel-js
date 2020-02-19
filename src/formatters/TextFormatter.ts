@@ -83,7 +83,6 @@ export class TextFormatter extends FormatterBase {
   }
 
   protected formatFromAst(ast: any, lines: any[] = []): any[] {
-    // console.log('AST', ast)
     switch (ast.name) {
       case 'document': {
         this.processAst(ast.children, lines);
@@ -331,6 +330,48 @@ export class TextFormatter extends FormatterBase {
             ast.children[1].allText,
             sublines[1].map_value
           )
+        })
+        return lines
+      }
+      case 'elementInObj': {
+        const sublines = []
+        this.processAst(ast.children, sublines)
+        if (sublines[1].list_value) {
+          // { string_value: 'value' }
+          //   ^^^^^^^^^^^^
+          const key = Object.keys(sublines[0])[0]
+          // { string_value: 'value' }
+          //                 ^^^^^^^
+          const value = Object.values(sublines[0])[0]
+          // List index
+          lines.push({
+            bool_value: (() => {
+              if (sublines[1].list_value.values) {
+                return sublines[1].list_value.values.filter(val => {
+                  if (val[key] === value) return true
+                  return false
+                }).length > 0
+              }
+              return false
+            })()
+          })
+          return lines
+        }
+
+        // Is a map
+        // { string_value: 'value' }
+        //                 ^^^^^^^
+        const key = Object.values(sublines[0])[0]
+        lines.push({
+          bool_value: (() => {
+            if (sublines[1].map_value.entries) {
+              return sublines[1].map_value.entries.filter(entry => {
+                if (entry.key.string_value === key) return true
+                return false
+              }).length > 0
+            }
+            return false
+          })()
         })
         return lines
       }
