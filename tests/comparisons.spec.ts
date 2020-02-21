@@ -2,20 +2,29 @@ import { CelSpec } from '../src/CelSpec';
 import { TextFormatter } from '../src/formatters/TextFormatter';
 import { NULL_VALUE } from '../src';
 
-const genCel = (expr: string, bindings?: any) => {
+const genCel = (expr: string, bindings?: any, debug?: boolean) => {
   const speech = new CelSpec();
   const ast = speech.toAST(expr, {});
+  if (debug) console.log(expr, ast)
+  if (debug) console.log(ast.children)
+  if (debug) console.log(ast.children[0].children)
   const bindingsAst = (() => {
     if (!bindings) return {}
     const tf = new TextFormatter({}, bindings)
     let res = {}
     for (const [key, entry] of Object.entries(bindings)) {
-      const entryAst = speech.toAST(`${entry}`)
+      if (debug) console.log('res', res)
+      if (debug) console.log('entry', key, entry, 'of', bindings)
+      const entryAst = speech.toAST(JSON.stringify(entry))
+      if (debug) console.log('eAST', entryAst)
       const entryCel = tf.format(entryAst)
       res[key] = entryCel
+      if (debug) console.log('res2', res)
     }
+    if (debug) console.log('res-end', res)
     return res
   })()
+  if (debug) console.log(bindings, bindingsAst)
 
   const tf = new TextFormatter({}, bindingsAst)
   return tf.format(ast)
@@ -1670,5 +1679,138 @@ describe('comparisons.in_map_literal', () => {
 })
 
 describe('comparisons.bound', () => {
+  it('bytes_gt_left_false', () => {
+    const expr = "x > b'\x30'"
+    const bindings = {
+      x: "\x30"
+    }
+    const expected = {
+      bool_value: false
+    }
 
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('int_lte_right_true', () => {
+    const expr = "123 <= x"
+    const bindings = {
+      x: 124
+    }
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('bool_lt_right_true', () => {
+    const expr = "false < x"
+    const bindings = {
+      x: true
+    }
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('double_ne_left_false', () => {
+    const expr = "x != 9.8"
+    const bindings = {
+      x: 9.8
+    }
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('map_ne_right_false', () => {
+    const expr = "{'a':'b','c':'d'} != x"
+    const bindings = {
+      x: {
+        a: 'b',
+        c: 'd',
+      }
+    }
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('null_eq_left_true', () => {
+    const expr = "x == null"
+    const bindings = {
+      x: null
+    }
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('list_eq_right_false', () => {
+    const expr = "[1, 2] == x"
+    const bindings = {
+      x: [2, 1]
+    }
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('string_gte_right_true', () => {
+    const expr = "'abcd' >= x"
+    const bindings = {
+      x: 'abc'
+    }
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('uint_eq_right_false', () => {
+    const expr = "999u == x"
+    const bindings = {
+      x: 1000
+    }
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  it('null_lt_right_no_such_overload', () => {
+    // There is no _<_ operation for null,
+    // even if both operands are null
+    const expr = "null < x"
+    const bindings = {
+      x: null
+    }
+    try {
+      genCel(expr, bindings)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no such overload" }')
+    }
+  })
 })

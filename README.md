@@ -2,7 +2,8 @@
 
 ## Supported functionality (subset)
 [x] Basic types and primitives
-[~] Comparisons - equality, less than, greater than
+[x] Comparisons
+[x] Lists
 [ ] etc
 
 ## Usage

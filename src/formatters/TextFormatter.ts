@@ -375,6 +375,74 @@ export class TextFormatter extends FormatterBase {
         })
         return lines
       }
+      case 'sizeOfObj': {
+        const sublines = []
+        this.processAst(ast.children, sublines)
+        if (sublines[0].list_value) {
+          // List length
+          if (!sublines[0].list_value.values) {
+            lines.push({
+              int64_value: 0
+            })
+            return lines
+          }
+
+          lines.push({
+            int64_value: sublines[0].list_value.values.length
+          })
+          return lines
+        }
+
+        // Is a map
+        if (!sublines[0].map_value.entries) {
+          lines.push({
+            int64_value: 0
+          })
+          return lines
+        }
+
+        lines.push({
+          int64_value: sublines[0].map_value.entries.length
+        })
+        return lines
+      }
+      case 'indexOfObj': {
+        const sublines = []
+        this.processAst(ast.children, sublines)
+        const [array, index] = sublines
+        if (array.list_value.values.length <= index.int64_value) {
+          throw new Error('{ message: "invalid_argument" }')
+        }
+
+        lines.push( array.list_value.values[index.int64_value] )
+        return lines
+      }
+      case 'concatObj': {
+        const sublines = []
+        this.processAst(ast.children, sublines)
+        const [arrayLeft, arrayRight] = sublines
+        const values = []
+        if (arrayLeft.list_value.values) {
+          values.push(...arrayLeft.list_value.values)
+        }
+        if (arrayRight.list_value.values) {
+          values.push(...arrayRight.list_value.values)
+        }
+
+        if (values.length === 0) {
+          lines.push({
+            list_value: {}
+          })
+          return lines
+        }
+
+        lines.push({
+          list_value: {
+            values
+          }
+        })
+        return lines
+      }
       case 'comparisonTypeMismatch': {
         throw new Error(`{ message: "no such overload" }`)
       }
