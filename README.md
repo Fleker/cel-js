@@ -4,6 +4,7 @@
 [x] Basic types and primitives
 [x] Comparisons
 [x] Lists
+[~] Logic - Ternary conditional, logical AND, logical OR
 [ ] etc
 
 ## Usage

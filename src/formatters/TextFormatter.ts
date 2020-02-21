@@ -443,6 +443,52 @@ export class TextFormatter extends FormatterBase {
         })
         return lines
       }
+      case 'ternary': {
+        const sublines = []
+        this.processAst(ast.children, sublines)
+        const [boolean, trueValue, falseValue] = sublines
+        lines.push(boolean.bool_value ? trueValue : falseValue)
+        return lines
+      }
+      case 'logicalAnd': {
+        const sublines = []
+        this.processAst(ast.children, sublines)
+        const booleanMerge = sublines.reduce((acc, curr) => {
+          if (acc.bool_value !== undefined) {
+            // On first run
+            return acc.bool_value && curr.bool_value
+          }
+          // Subsequent runs
+          return acc && curr.bool_value
+        })
+
+        lines.push({
+          bool_value: booleanMerge
+        })
+        return lines
+      }
+      case 'logicalOr': {
+        const sublines = []
+        this.processAst(ast.children, sublines)
+        const booleanMerge = sublines.reduce((acc, curr) => {
+          if (acc.bool_value !== undefined) {
+            // On first run
+            return acc.bool_value || curr.bool_value
+          }
+          if (acc !== true && acc !== false) {
+            // This is not a boolean
+            acc = true // Assume it's truthy
+          }
+          // Subsequent runs
+          return acc || curr.bool_value
+        })
+
+        lines.push({
+          bool_value: booleanMerge
+        })
+        return lines
+      }
+      case 'ternaryTypeMismatch':
       case 'comparisonTypeMismatch': {
         throw new Error(`{ message: "no such overload" }`)
       }

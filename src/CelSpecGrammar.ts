@@ -267,6 +267,30 @@ export function celSpecGrammar(myna: any): any {
       this.list
     ).ast
 
+    this.ternary = m.seq(
+      this.boolean,
+      m.space,
+      '?',
+      m.space,
+      primitive,
+      m.space,
+      ':',
+      m.space,
+      primitive
+    ).ast
+
+    this.ternaryTypeMismatch = m.seq(
+      primitive,
+      m.space,
+      '?',
+      m.space,
+      primitive,
+      m.space,
+      ':',
+      m.space,
+      primitive
+    ).ast
+
     this.deepCompareObj = m.choice(
       m.seq(
         m.choice(this.map, this.concatObj, this.list, this.variable),
@@ -284,6 +308,22 @@ export function celSpecGrammar(myna: any): any {
       )
     ).ast
 
+    this.logicalAnd = m.seq(
+      primitive,
+      m.opt(m.space),
+      '&&',
+      m.opt(m.space),
+      primitive,
+    ).ast
+
+    this.logicalOr = m.seq(
+      primitive,
+      m.opt(m.space),
+      '||',
+      m.opt(m.space),
+      primitive,
+    ).ast
+
     this.expr = m.choice(
       // Groups
       this.comparisonInt64,
@@ -294,6 +334,10 @@ export function celSpecGrammar(myna: any): any {
       this.comparisonBoolean,
       this.comparisonNull,
       this.deepCompareObj,
+      this.ternary,
+      this.ternaryTypeMismatch,
+      this.logicalAnd,
+      this.logicalOr,
       this.comparisonTypeMismatch, // Catch rest
       // Collections
       this.elementInObj,
