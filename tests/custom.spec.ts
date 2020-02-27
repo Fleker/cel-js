@@ -58,6 +58,34 @@ describe('custom.box', () => {
     const cel = genCel(expr, bindings)
     expect(cel).toStrictEqual(expected);
   })
+
+  test('must_be_shiny', () => {
+    const expr = 'shiny'
+    const bindings = {
+      shiny: false
+    }
+
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('non_shiny', () => {
+    const expr = '!shiny'
+    const bindings = {
+      shiny: false
+    }
+
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
 })
 
 describe('custom.gts', () => {
@@ -75,6 +103,36 @@ describe('custom.gts', () => {
 
     const cel = genCel(expr, bindings)
     expect(cel).toStrictEqual(expected);
+  })
+
+  test('Press F to pay Unown', () => {
+    const expr = 'id == 201 && form == "F"'
+    const bindings = {
+      id: 201,
+      form: 'F',
+      species: 'Unown',
+      type1: 'Psychic'
+    }
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+
+    const expr2 = 'id == 201 && form == "F"'
+    const bindings2 = {
+      id: 201,
+      form: 'G',
+      species: 'Unown',
+      type1: 'Psychic'
+    }
+    const expected2 = {
+      bool_value: false
+    }
+
+    const cel2 = genCel(expr2, bindings2)
+    expect(cel2).toStrictEqual(expected2);
   })
 
   test('Unown', () => {

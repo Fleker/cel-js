@@ -488,6 +488,19 @@ export class TextFormatter extends FormatterBase {
         })
         return lines
       }
+      case 'logicalNot': {
+        const sublines = []
+        this.processAst(ast.children, sublines)
+        const [condition] = sublines
+        if (!('bool_value' in condition)) {
+          throw new Error('{ message: "no matching overload" }')
+        }
+
+        lines.push({
+          bool_value: !condition.bool_value
+        })
+        return lines
+      }
       case 'ternaryTypeMismatch':
       case 'comparisonTypeMismatch': {
         throw new Error(`{ message: "no such overload" }`)

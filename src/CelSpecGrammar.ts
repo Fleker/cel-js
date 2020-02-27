@@ -235,6 +235,12 @@ export function celSpecGrammar(myna: any): any {
       )
     ).ast
 
+    const comparisons = m.choice(
+      this.comparisonNull,
+      this.comparisonString,
+      this.comparisonInt64,
+    )
+
     // This will catch primitive comparisons not matched above
     this.comparisonTypeMismatch = m.seq(
       primitive,
@@ -309,22 +315,31 @@ export function celSpecGrammar(myna: any): any {
     ).ast
 
     this.logicalAnd = m.seq(
-      primitive,
+      m.choice(primitive, comparisons, this.variable),
       m.opt(m.space),
       '&&',
       m.opt(m.space),
-      primitive,
+      m.choice(primitive, comparisons, this.variable),
     ).ast
 
     this.logicalOr = m.seq(
-      primitive,
+      m.choice(primitive, comparisons, this.variable),
       m.opt(m.space),
       '||',
       m.opt(m.space),
-      primitive,
+      m.choice(primitive, comparisons, this.variable),
+    ).ast
+
+    this.logicalNot = m.seq(
+      '!',
+      m.choice(primitive, comparisons, this.variable)
     ).ast
 
     this.expr = m.choice(
+      // Logical groups
+      this.logicalAnd,
+      this.logicalOr,
+      this.logicalNot,
       // Groups
       this.comparisonInt64,
       this.comparisonUint64,
@@ -336,8 +351,6 @@ export function celSpecGrammar(myna: any): any {
       this.deepCompareObj,
       this.ternary,
       this.ternaryTypeMismatch,
-      this.logicalAnd,
-      this.logicalOr,
       this.comparisonTypeMismatch, // Catch rest
       // Collections
       this.elementInObj,

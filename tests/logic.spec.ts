@@ -266,12 +266,31 @@ describe('logic.OR', () => {
   })
 })
 
-describe.skip('logic.NOT', () => {
+describe('logic.NOT', () => {
   test('not_true', () => {
     const expr = "!true"
     const expected = { bool_value: false }
 
     const cel = genCel(expr)
     expect(cel).toStrictEqual(expected);
+  })
+
+  test('not_false', () => {
+    const expr = '!false'
+    const expected = { bool_value: true }
+
+    const cel = genCel(expr)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('no_overload', () => {
+    const expr = '!0'
+    
+    try {
+      genCel(expr)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.message).toBe('{ message: "no matching overload" }')
+    }
   })
 })
