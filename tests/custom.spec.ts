@@ -147,4 +147,22 @@ describe('custom.gts', () => {
     const cel = genCel(expr, bindings)
     expect(cel).toStrictEqual(expected);
   })
+
+  test('Punctuation - Mr. Mime', () => {
+    const expr = `'Mr. Mime'`
+    const expected = {
+      string_value: 'Mr. Mime'
+    }
+    const cel = genCel(expr, {})
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('Punctuation - Farfetch\'d', () => {
+    const expr = `"Farfetch'd"`
+    const expected = {
+      string_value: 'Farfetch\'d'
+    }
+    const cel = genCel(expr, {})
+    expect(cel).toStrictEqual(expected);
+  })
 })

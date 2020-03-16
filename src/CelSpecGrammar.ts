@@ -35,14 +35,23 @@ export function celSpecGrammar(myna: any): any {
     const character = m.choice(
       m.letters,
       m.digits,
-      m.char('+-!\\[]()'),
+      m.space,
+      m.char('+-!\\[]().'),
       m.char('áàéίασςιδοτÿ'),
       m.char('\x00\x01'),
     )
 
     this.string = m.choice(
-      m.seq(`'`, character.zeroOrMore, m.seq(`'`)),
-      m.seq(`"`, character.zeroOrMore, m.seq(`"`))
+      m.seq(
+        `'`, 
+        m.choice(character, '"').zeroOrMore,
+        `'`
+      ),
+      m.seq(
+        `"`,
+        m.choice(character, "'").zeroOrMore,
+        `"`
+      )
     ).ast
     this.rawString = m.choice(
       m.seq(`r'`, character.zeroOrMore, m.seq(`'`)),
