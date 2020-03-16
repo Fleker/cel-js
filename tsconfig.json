@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": [ "es2017" ],
-    "module": "commonjs",
+    "module": "ES6",
     "declaration": true,
     "noImplicitAny": false,
     "noImplicitThis": false,
@@ -10,7 +10,7 @@
     "strict": true,
     "outDir": "dist",
     "rootDir": ".",
-    "target": "ES5",
+    "target": "ES6",
     "sourceMap": true,
     "strictNullChecks": false,
     "moduleResolution": "node",
