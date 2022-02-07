@@ -86,6 +86,40 @@ describe('custom.box', () => {
     const cel = genCel(expr, bindings)
     expect(cel).toStrictEqual(expected);
   })
+
+  test('var0', () => {
+    const expr = 'var == 0'
+    const bindings = {
+      id: 12,
+      var: 0,
+      species: 'Butterfree',
+      type1: 'Bug',
+      type2: 'Flying'
+    }
+    const expected = {
+      bool_value: true
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
+
+  test('Not var0', () => {
+    const expr = 'var == 0'
+    const bindings = {
+      id: 12,
+      var: null,
+      species: 'Butterfree',
+      type1: 'Bug',
+      type2: 'Flying'
+    }
+    const expected = {
+      bool_value: false
+    }
+
+    const cel = genCel(expr, bindings)
+    expect(cel).toStrictEqual(expected);
+  })
 })
 
 describe('custom.gts', () => {
