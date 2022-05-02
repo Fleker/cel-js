@@ -1,5 +1,5 @@
 {
-  "name": "cel-spec-js",
+  "name": "@fleker/cel-js",
   "version": "1.0.0",
   "description": "CEL Spec for Node and Browser",
   "main": "dist/index.js",
@@ -11,8 +11,8 @@
   "engines": {
     "node": ">= 10.13"
   },
-  "author": "",
-  "license": "",
+  "author": "Nick Felker",
+  "license": "Apache-2.0",
   "homepage": "",
   "repository": {
     "type": "git",
