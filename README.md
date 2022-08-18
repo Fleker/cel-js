@@ -9,6 +9,10 @@
 
 ## Usage
 
+```
+npm install @fleker/cel-js
+```
+
 ### Create a list
 
 ```javascript
