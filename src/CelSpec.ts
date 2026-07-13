@@ -29,10 +29,9 @@ export class CelSpec {
       ... options
     };
 
-    const ast = this.Parser.parse(speechmarkdown);
     // const formatter = factory.createTextFormatter(methodOptions);
 
-    return ast
+    return this.Parser.parse(speechmarkdown);
   }
 
   public toSSML(speechmarkdown: string, options?: CelSpecOptions): string {
@@ -41,11 +40,10 @@ export class CelSpec {
       ... options
     };
 
-    const ast = this.Parser.parse(speechmarkdown);
     // console.log(`AST: ${ast}`);
     // const formatter = factory.createFormatter(methodOptions);
 
-    return ast
+    return this.Parser.parse(speechmarkdown);
   }
 
   public toAST(speechmarkdown: string, options?: CelSpecOptions): any {

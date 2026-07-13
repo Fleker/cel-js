@@ -33,7 +33,7 @@ const deepObjEvaluateComparison = (comp1: any, op: Compare, comp2: any) => {
   // Convert our CEL object into a traditional map
   let map1 = {}
   if (Array.isArray(comp1.entries)) {
-    comp1.entries.forEach(entry => {
+    comp1.entries.forEach((entry: any) => {
       map1[entry.key.string_value] = entry.value.string_value
     })
   } else if (comp1.entries) {
@@ -43,7 +43,7 @@ const deepObjEvaluateComparison = (comp1: any, op: Compare, comp2: any) => {
 
   let map2 = {}
   if (Array.isArray(comp2.entries)) {
-    comp2.entries.forEach(entry => {
+    comp2.entries.forEach((entry: any) => {
       map2[entry.key.string_value] = entry.value.string_value
     })
   } else if (comp2.entries) {
@@ -63,7 +63,7 @@ const deepObjEvaluateComparison = (comp1: any, op: Compare, comp2: any) => {
 }
 
 export class TextFormatter extends FormatterBase {
-  bindings = {}
+  bindings: any = {}
 
   constructor(protected options: CelSpecOptions, bindings: any) {
     super(options);
@@ -82,6 +82,7 @@ export class TextFormatter extends FormatterBase {
     return lines;
   }
 
+  // tslint:disable-next-line: max-func-body-length
   protected formatFromAst(ast: any, lines: any[] = []): any[] {
     switch (ast.name) {
       case 'document': {
@@ -351,7 +352,7 @@ export class TextFormatter extends FormatterBase {
           lines.push({
             bool_value: (() => {
               if (sublines[1].list_value.values) {
-                return sublines[1].list_value.values.filter(val => {
+                return sublines[1].list_value.values.filter((val: any) => {
                   if (val[key] === value) return true
                   return false
                 }).length > 0
@@ -369,7 +370,7 @@ export class TextFormatter extends FormatterBase {
         lines.push({
           bool_value: (() => {
             if (sublines[1].map_value.entries) {
-              return sublines[1].map_value.entries.filter(entry => {
+              return sublines[1].map_value.entries.filter((entry: any) => {
                 if (entry.key.string_value === key) return true
                 return false
               }).length > 0

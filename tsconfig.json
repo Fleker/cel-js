@@ -14,11 +14,11 @@
     "sourceMap": true,
     "strictNullChecks": false,
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "typeRoots": [ "./node_modules/@types" ]
   },
   "include": [
     "index.ts",
-    "src/**/*",
-    "test/**/*"
+    "src/**/*"
   ]
 }

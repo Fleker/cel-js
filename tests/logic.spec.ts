@@ -7,7 +7,7 @@ const genCel = (expr: string, bindings?: any, debug?: boolean) => {
   const ast = speech.toAST(expr, {});
   if (debug) console.log(expr, ast)
   if (debug) console.log(ast.children)
-  if (debug) console.log(ast.children.map(child => child.children))
+  if (debug) console.log(ast.children.map((child: any) => child.children))
   const bindingsAst = (() => {
     if (!bindings) return {}
     const tf = new TextFormatter({}, bindings)
