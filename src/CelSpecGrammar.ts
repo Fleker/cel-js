@@ -244,12 +244,6 @@ export function celSpecGrammar(myna: any): any {
       )
     ).ast
 
-    const comparisons = m.choice(
-      this.comparisonNull,
-      this.comparisonString,
-      this.comparisonInt64,
-    )
-
     // This will catch primitive comparisons not matched above
     this.comparisonTypeMismatch = m.seq(
       primitive,
@@ -323,32 +317,71 @@ export function celSpecGrammar(myna: any): any {
       )
     ).ast
 
-    this.logicalAnd = m.seq(
-      m.choice(primitive, comparisons, this.variable),
-      m.opt(m.space),
-      '&&',
-      m.opt(m.space),
-      m.choice(primitive, comparisons, this.variable),
-    ).ast
+    const comparisons = m.choice(
+      this.comparisonNull,
+      this.comparisonString,
+      this.comparisonInt64,
+      this.comparisonUint64,
+      this.comparisonDouble,
+      this.comparisonByteString,
+      this.comparisonBoolean,
+      this.deepCompareObj,
+      this.comparisonTypeMismatch
+    )
 
-    this.logicalOr = m.seq(
-      m.choice(primitive, comparisons, this.variable),
-      m.opt(m.space),
-      '||',
-      m.opt(m.space),
-      m.choice(primitive, comparisons, this.variable),
-    ).ast
+    this.parenthesized = m.parenthesized(m.delay(() => this.expr)).ast
+
+    const logicalOperand = m.choice(
+      this.parenthesized,
+      m.delay(() => this.logicalNot),
+      comparisons,
+      this.elementInObj,
+      this.sizeOfObj,
+      this.indexOfObj,
+      this.concatObj,
+      this.ternary,
+      this.ternaryTypeMismatch,
+      this.comparisonTypeMismatch,
+      primitive,
+      this.variable
+    )
 
     this.logicalNot = m.seq(
       '!',
-      m.choice(primitive, comparisons, this.variable)
+      logicalOperand
+    ).ast
+
+    this.logicalAnd = m.seq(
+      logicalOperand,
+      m.seq(
+        m.opt(m.space),
+        '&&',
+        m.opt(m.space),
+        logicalOperand
+      ).oneOrMore
+    ).ast
+
+    const logicalOrOperand = m.choice(
+      this.logicalAnd,
+      logicalOperand
+    )
+
+    this.logicalOr = m.seq(
+      logicalOrOperand,
+      m.seq(
+        m.opt(m.space),
+        '||',
+        m.opt(m.space),
+        logicalOrOperand
+      ).oneOrMore
     ).ast
 
     this.expr = m.choice(
       // Logical groups
-      this.logicalAnd,
       this.logicalOr,
+      this.logicalAnd,
       this.logicalNot,
+      this.parenthesized,
       // Groups
       this.comparisonInt64,
       this.comparisonUint64,

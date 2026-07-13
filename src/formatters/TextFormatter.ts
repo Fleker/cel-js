@@ -453,13 +453,10 @@ export class TextFormatter extends FormatterBase {
       case 'logicalAnd': {
         const sublines = []
         this.processAst(ast.children, sublines)
-        const booleanMerge = sublines.reduce((acc, curr) => {
-          if (acc.bool_value !== undefined) {
-            // On first run
-            return acc.bool_value && curr.bool_value
-          }
-          // Subsequent runs
-          return acc && curr.bool_value
+        const booleanMerge = sublines.every((val: any) => {
+          if (val && val.bool_value !== undefined) return val.bool_value
+          if (val && val.null_value !== undefined) return false
+          return Boolean(val)
         })
 
         lines.push({
@@ -470,22 +467,23 @@ export class TextFormatter extends FormatterBase {
       case 'logicalOr': {
         const sublines = []
         this.processAst(ast.children, sublines)
-        const booleanMerge = sublines.reduce((acc, curr) => {
-          if (acc.bool_value !== undefined) {
-            // On first run
-            return acc.bool_value || curr.bool_value
-          }
-          if (acc !== true && acc !== false) {
-            // This is not a boolean
-            acc = true // Assume it's truthy
-          }
-          // Subsequent runs
-          return acc || curr.bool_value
+        const booleanMerge = sublines.some((val: any) => {
+          if (val && val.bool_value !== undefined) return val.bool_value
+          if (val && val.null_value !== undefined) return false
+          return Boolean(val)
         })
 
         lines.push({
           bool_value: booleanMerge
         })
+        return lines
+      }
+      case 'parenthesized': {
+        const sublines = []
+        this.processAst(ast.children, sublines)
+        if (sublines.length > 0) {
+          lines.push(...sublines)
+        }
         return lines
       }
       case 'logicalNot': {

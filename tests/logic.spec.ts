@@ -294,3 +294,68 @@ describe('logic.NOT', () => {
     }
   })
 })
+
+describe('logic.chaining', () => {
+  test('three_and_true', () => {
+    const expr = "true && true && true"
+    const expected = { bool_value: true }
+    expect(genCel(expr)).toStrictEqual(expected)
+  })
+
+  test('three_and_false', () => {
+    const expr = "true && false && true"
+    const expected = { bool_value: false }
+    expect(genCel(expr)).toStrictEqual(expected)
+  })
+
+  test('three_or_true', () => {
+    const expr = "false || false || true"
+    const expected = { bool_value: true }
+    expect(genCel(expr)).toStrictEqual(expected)
+  })
+
+  test('three_or_false', () => {
+    const expr = "false || false || false"
+    const expected = { bool_value: false }
+    expect(genCel(expr)).toStrictEqual(expected)
+  })
+
+  // b/238930237 tests
+  test('bug_238930237_chained_and', () => {
+    const expr = 'var!=null && id>=599 && id<=601'
+    expect(genCel(expr, { var: 'Klink', id: 599 })).toStrictEqual({ bool_value: true })
+    expect(genCel(expr, { var: 'Klang', id: 600 })).toStrictEqual({ bool_value: true })
+    expect(genCel(expr, { var: 'Klinklang', id: 601 })).toStrictEqual({ bool_value: true })
+    expect(genCel(expr, { var: 'Klink', id: 598 })).toStrictEqual({ bool_value: false })
+    expect(genCel(expr, { var: 'Klink', id: 602 })).toStrictEqual({ bool_value: false })
+    expect(genCel(expr, { var: null, id: 600 })).toStrictEqual({ bool_value: false })
+  })
+})
+
+describe('logic.parentheses', () => {
+  test('bug_238930237_parens_left', () => {
+    const expr = '(var!=null && id>=599) && id<=601'
+    expect(genCel(expr, { var: 'Klink', id: 599 })).toStrictEqual({ bool_value: true })
+    expect(genCel(expr, { var: 'Klang', id: 600 })).toStrictEqual({ bool_value: true })
+    expect(genCel(expr, { var: 'Klinklang', id: 601 })).toStrictEqual({ bool_value: true })
+    expect(genCel(expr, { var: 'Klink', id: 598 })).toStrictEqual({ bool_value: false })
+    expect(genCel(expr, { var: 'Klink', id: 602 })).toStrictEqual({ bool_value: false })
+    expect(genCel(expr, { var: null, id: 600 })).toStrictEqual({ bool_value: false })
+  })
+
+  test('bug_238930237_parens_right', () => {
+    const expr = 'var!=null && (id>=599 && id<=601)'
+    expect(genCel(expr, { var: 'Klink', id: 599 })).toStrictEqual({ bool_value: true })
+    expect(genCel(expr, { var: 'Klang', id: 600 })).toStrictEqual({ bool_value: true })
+    expect(genCel(expr, { var: 'Klinklang', id: 601 })).toStrictEqual({ bool_value: true })
+    expect(genCel(expr, { var: 'Klink', id: 598 })).toStrictEqual({ bool_value: false })
+    expect(genCel(expr, { var: 'Klink', id: 602 })).toStrictEqual({ bool_value: false })
+    expect(genCel(expr, { var: null, id: 600 })).toStrictEqual({ bool_value: false })
+  })
+
+  test('nested_or_and', () => {
+    const expr = '(true || false) && true'
+    const expected = { bool_value: true }
+    expect(genCel(expr)).toStrictEqual(expected)
+  })
+})
