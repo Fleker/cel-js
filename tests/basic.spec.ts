@@ -352,3 +352,25 @@ describe('reserved_const', () => {
     expect(cel).toStrictEqual(expected)
   })
 })
+
+describe('bug_298660824', () => {
+  test('string_colons_underscores', () => {
+    expect(genCel('"Type: Null"')).toStrictEqual({ string_value: 'Type: Null' })
+    expect(genCel('"pop_star"')).toStrictEqual({ string_value: 'pop_star' })
+    expect(genCel('"potw-025-rock_star"')).toStrictEqual({ string_value: 'potw-025-rock_star' })
+  })
+
+  test('variable_with_underscore', () => {
+    expect(genCel('form_name', { form_name: '"alolan"' })).toStrictEqual({ string_value: 'alolan' })
+  })
+
+  test('allow_missing_variables_option', () => {
+    const speech = new CelSpec()
+    const ast = speech.toAST('form == "alolan"')
+    const tf = new TextFormatter({ allowMissingVariables: true }, {})
+    expect(tf.format(ast)).toStrictEqual({ bool_value: false })
+
+    const ast2 = speech.toAST('form != "alolan"')
+    expect(tf.format(ast2)).toStrictEqual({ bool_value: true })
+  })
+})

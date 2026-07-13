@@ -1,1 +1,3 @@
-export interface CelSpecOptions {}
+export interface CelSpecOptions {
+  allowMissingVariables?: boolean;
+}

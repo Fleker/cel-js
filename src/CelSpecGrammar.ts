@@ -41,25 +41,26 @@ export function celSpecGrammar(myna: any): any {
       m.char('\x00\x01'),
     )
 
+    const escapedChar = m.seq('\\', m.advance);
     this.string = m.choice(
       m.seq(
         `'`, 
-        m.choice(character, '"').zeroOrMore,
+        m.choice(escapedChar, m.notChar(`'`)).zeroOrMore,
         `'`
       ),
       m.seq(
         `"`,
-        m.choice(character, "'").zeroOrMore,
+        m.choice(escapedChar, m.notChar(`"`)).zeroOrMore,
         `"`
       )
     ).ast
     this.rawString = m.choice(
-      m.seq(`r'`, character.zeroOrMore, m.seq(`'`)),
-      m.seq(`r"`, character.zeroOrMore, m.seq(`"`))
+      m.seq(`r'`, m.notChar(`'`).zeroOrMore, `'`),
+      m.seq(`r"`, m.notChar(`"`).zeroOrMore, `"`)
     ).ast
     this.byteString = m.choice(
-      m.seq(`b'`, character.zeroOrMore, m.seq(`'`)),
-      m.seq(`b"`, character.zeroOrMore, m.seq(`"`))
+      m.seq(`b'`, m.choice(escapedChar, m.notChar(`'`)).zeroOrMore, `'`),
+      m.seq(`b"`, m.choice(escapedChar, m.notChar(`"`)).zeroOrMore, `"`)
     ).ast
     this.boolean = m.choice(
       'false', 'true'
@@ -68,12 +69,8 @@ export function celSpecGrammar(myna: any): any {
     this.null = m.choice('null', 'NULL').ast
 
     this.variable = m.seq(
-      m.letterLower.oneOrMore,
-      m.seq(
-        m.letterUpper,
-        m.letterLower.zeroOrMore,
-      ).zeroOrMore,
-      m.digits.zeroOrMore
+      m.choice(m.letters, m.char('_')),
+      m.choice(m.letters, m.digits, m.char('_')).zeroOrMore
     ).ast
     
     const primitive = m.choice(

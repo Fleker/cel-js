@@ -204,6 +204,10 @@ export class TextFormatter extends FormatterBase {
       case 'variable': {
         // Perform variable lookup from our mapping
         if (!this.bindings[ast.allText]) {
+          if (this.options && this.options.allowMissingVariables) {
+            lines.push({ null_value: NULL_VALUE })
+            return lines
+          }
           throw new Error(`{ message: "undeclared reference to '${ast.allText}' (in container '')" }`)
         }
         lines.push(this.bindings[ast.allText])
