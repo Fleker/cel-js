@@ -16,10 +16,10 @@
   "homepage": "",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/Fleker/cel-js"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/Fleker/cel-js/issues"
   },
   "scripts": {
     "clean": "rimraf coverage dist tmp",
