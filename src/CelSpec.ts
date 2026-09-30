@@ -2,6 +2,8 @@ import { Parser } from './Interfaces';
 import { CelSpecParser } from "./CelSpecParser";
 import { CelSpecOptions } from "./CelSpecOptions";
 
+let sharedParser: Parser;
+
 export class CelSpec {
 
   private parser: Parser;
@@ -9,40 +11,28 @@ export class CelSpec {
   private readonly defaults: CelSpecOptions = {};
 
   constructor(private options?: CelSpecOptions) {
-      this.options = {
+      this.options = options ? {
         ... this.defaults,
         ... options
-      };
+      } : this.defaults;
   }
 
   get Parser(): Parser {
     if (!this.parser) {
-      this.parser = new CelSpecParser();
+      if (!sharedParser) {
+        sharedParser = new CelSpecParser();
+      }
+      this.parser = sharedParser;
     }
 
     return this.parser;
   }
 
   public toText(speechmarkdown: string, options?: CelSpecOptions): string {
-    const methodOptions = {
-      ... this.options,
-      ... options
-    };
-
-    // const formatter = factory.createTextFormatter(methodOptions);
-
     return this.Parser.parse(speechmarkdown);
   }
 
   public toSSML(speechmarkdown: string, options?: CelSpecOptions): string {
-    const methodOptions = {
-      ... this.options,
-      ... options
-    };
-
-    // console.log(`AST: ${ast}`);
-    // const formatter = factory.createFormatter(methodOptions);
-
     return this.Parser.parse(speechmarkdown);
   }
 

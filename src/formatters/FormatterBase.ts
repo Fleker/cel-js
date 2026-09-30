@@ -11,14 +11,14 @@ export abstract class FormatterBase implements Formatter {
 
   // Adds each element of the array as markdown
   protected addArray(ast: any, lines: string[]): string[] {
-    for (const child of ast) {
-      this.formatFromAst(child, lines);
+    for (let i = 0, len = ast.length; i < len; i++) {
+      this.formatFromAst(ast[i], lines);
     }
     return lines;
   }
 
   protected processAst(ast: any, lines: string[]): void {
-    if (ast instanceof Array) {
+    if (Array.isArray(ast)) {
       this.addArray(ast, lines);
     } else {
       this.formatFromAst(ast, lines);

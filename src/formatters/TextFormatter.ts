@@ -4,19 +4,32 @@ import { NULL_VALUE } from '..';
 
 type Compare = '==' | '!=' | '>' | '>=' | '<' | '<='
 
-const evaluateComparison = (comp1: any, op: Compare, comp2: any) => {
-  if (op === '==') return comp1 === comp2
-  if (op === '!=') return comp1 !== comp2
-  if (op === '>')  return comp1 > comp2
-  if (op === '>=') return comp1 >= comp2
-  if (op === '<')  return comp1 < comp2
-  if (op === '<=') return comp1 <= comp2
+const evaluateComparison = (comp1: any, op: Compare, comp2: any): boolean => {
+  switch (op) {
+    case '==': return comp1 === comp2
+    case '!=': return comp1 !== comp2
+    case '>':  return comp1 > comp2
+    case '>=': return comp1 >= comp2
+    case '<':  return comp1 < comp2
+    case '<=': return comp1 <= comp2
+    default: return false
+  }
 }
 
-const deepArrayEvaluateComparison = (comp1: any[], op: Compare, comp2: any[]) => {
+const deepArrayEvaluateComparison = (comp1: any, op: Compare, comp2: any): boolean => {
   if (op === '<' || op === '<=' || op === '>' || op === '>=') {
     // Can't deep compare w/ ops
     throw new Error(`{ message: "no such overload" }`)
+  }
+  const vals1 = comp1.values
+  const vals2 = comp2.values
+  if (!vals1 || !vals2) {
+    const empty1 = !vals1 || vals1.length === 0
+    const empty2 = !vals2 || vals2.length === 0
+    return op === '==' ? empty1 === empty2 : empty1 !== empty2
+  }
+  if (vals1.length !== vals2.length) {
+    return op === '!='
   }
   return evaluateComparison(
     JSON.stringify(comp1),
@@ -25,41 +38,50 @@ const deepArrayEvaluateComparison = (comp1: any[], op: Compare, comp2: any[]) =>
   )
 }
 
-const deepObjEvaluateComparison = (comp1: any, op: Compare, comp2: any) => {
+const deepObjEvaluateComparison = (comp1: any, op: Compare, comp2: any): boolean => {
   if (op === '<' || op === '<=' || op === '>' || op === '>=') {
     // Can't deep compare w/ ops
     throw new Error(`{ message: "no such overload" }`)
   }
+  const entries1 = comp1.entries
+  const entries2 = comp2.entries
+  if (!entries1 || !entries2) {
+    const empty1 = !entries1 || (Array.isArray(entries1) && entries1.length === 0)
+    const empty2 = !entries2 || (Array.isArray(entries2) && entries2.length === 0)
+    return op === '==' ? empty1 === empty2 : empty1 !== empty2
+  }
+  if (Array.isArray(entries1) && Array.isArray(entries2) && entries1.length !== entries2.length) {
+    return op === '!='
+  }
   // Convert our CEL object into a traditional map
-  let map1 = {}
-  if (Array.isArray(comp1.entries)) {
-    comp1.entries.forEach((entry: any) => {
+  const map1: any = {}
+  if (Array.isArray(entries1)) {
+    for (let i = 0, len = entries1.length; i < len; i++) {
+      const entry = entries1[i]
       map1[entry.key.string_value] = entry.value.string_value
-    })
-  } else if (comp1.entries) {
-    map1[comp1.entries.key.string_value] =
-      comp1.entries.value.string_value
+    }
+  } else {
+    map1[entries1.key.string_value] = entries1.value.string_value
   }
 
-  let map2 = {}
-  if (Array.isArray(comp2.entries)) {
-    comp2.entries.forEach((entry: any) => {
+  const map2: any = {}
+  if (Array.isArray(entries2)) {
+    for (let i = 0, len = entries2.length; i < len; i++) {
+      const entry = entries2[i]
       map2[entry.key.string_value] = entry.value.string_value
-    })
-  } else if (comp2.entries) {
-    map2[comp2.entries.key.string_value] =
-      comp2.entries.value.string_value
+    }
+  } else {
+    map2[entries2.key.string_value] = entries2.value.string_value
   }
 
   // Turn objects (and arrays) into Entry arrays
   // so that we can then sort the data
   // before stringifying them, to resolve order issues
   return evaluateComparison(
-      JSON.stringify(Object.entries(map1).sort()),
-      op,
-      JSON.stringify(Object.entries(map2).sort())
-    )
-  
+    JSON.stringify(Object.entries(map1).sort()),
+    op,
+    JSON.stringify(Object.entries(map2).sort())
+  )
 }
 
 export class TextFormatter extends FormatterBase {
@@ -91,13 +113,13 @@ export class TextFormatter extends FormatterBase {
       }
       case 'int64': {
         lines.push({
-          int64_value: parseInt(ast.allText)
+          int64_value: parseInt(ast.allText, 10)
         })
         return lines
       }
       case 'uint64': {
         lines.push({
-          uint64_value: parseInt(ast.allText)
+          uint64_value: parseInt(ast.allText, 10)
         })
         return lines
       }
@@ -108,20 +130,27 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'string': {
-        // console.log('str', ast.input, ast.allText)
+        const strVal = ast.input !== undefined
+          ? ast.input.slice(ast.start + 1, ast.end - 1)
+          : ast.allText.substring(1, ast.allText.length - 1)
         lines.push({
-          string_value: new String(ast.allText.substring(1, ast.allText.length - 1)).valueOf()
+          string_value: strVal
         })
         return lines
       }
       case 'rawString': {
+        const rawVal = ast.input !== undefined
+          ? ast.input.slice(ast.start + 2, ast.end - 1)
+          : ast.allText.substring(2, ast.allText.length - 1)
         lines.push({
-          string_value: ast.allText.substring(2, ast.allText.length - 1)
+          string_value: rawVal
         })
         return lines
       }
       case 'byteString': {
-        const byteStr = ast.allText.substring(2, ast.allText.length - 1) as string
+        const byteStr = (ast.input !== undefined
+          ? ast.input.slice(ast.start + 2, ast.end - 1)
+          : ast.allText.substring(2, ast.allText.length - 1)) as string
         // If the values are already in octal, why convert?
         if (byteStr.charAt(0) === '\\') {
           const octsArr = byteStr.split('\\')
@@ -163,12 +192,12 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'list': {
-        const sublines = []
+        const sublines: any[] = []
         this.processAst(ast.children, sublines);
         if (sublines.length >= 1) {
           lines.push({
             list_value: {
-              values: [...sublines]
+              values: sublines
             }
           })
           return lines
@@ -179,7 +208,7 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'map': {
-        const sublines = []
+        const sublines: any[] = []
         this.processAst(ast.children, sublines);
         if (sublines.length >= 2) {
           const entries = []
@@ -204,42 +233,29 @@ export class TextFormatter extends FormatterBase {
       }
       case 'variable': {
         // Perform variable lookup from our mapping
-        if (!this.bindings[ast.allText]) {
+        const varName = ast.allText
+        const boundVal = this.bindings[varName]
+        if (!boundVal) {
           if (this.options && this.options.allowMissingVariables) {
             lines.push({ null_value: NULL_VALUE })
             return lines
           }
-          throw new Error(`{ message: "undeclared reference to '${ast.allText}' (in container '')" }`)
+          throw new Error(`{ message: "undeclared reference to '${varName}' (in container '')" }`)
         }
-        lines.push(this.bindings[ast.allText])
+        lines.push(boundVal)
         return lines
       }
       case 'comparisonInt64': 
       case 'comparisonUint64': {
         // This should include three children
         // [int64, comparable, int64]
-        const sublines = []
-        // console.log(ast.children)
-        this.processAst(ast.children, sublines)
-        // console.log(sublines)
-        const int1 = (() => {
-          if ('int64_value' in sublines[0]) {
-            return sublines[0].int64_value
-          }
-          if ('uint64_value' in sublines[0]) {
-            return sublines[0].uint64_value
-          }
-          return undefined
-        })()
-        const int2 = (() => {
-          if ('int64_value' in sublines[1]) {
-            return sublines[1].int64_value
-          }
-          if ('uint64_value' in sublines[1]) {
-            return sublines[1].uint64_value
-          }
-          return undefined
-        })()
+        const sublines: any[] = []
+        this.formatFromAst(ast.children[0], sublines)
+        this.formatFromAst(ast.children[2], sublines)
+        const left = sublines[0]
+        const right = sublines[1]
+        const int1 = left.int64_value !== undefined ? left.int64_value : left.uint64_value
+        const int2 = right.int64_value !== undefined ? right.int64_value : right.uint64_value
         lines.push({
           bool_value: evaluateComparison(
             int1,
@@ -250,8 +266,9 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'comparisonDouble': {
-        const sublines = []
-        this.processAst(ast.children, sublines)
+        const sublines: any[] = []
+        this.formatFromAst(ast.children[0], sublines)
+        this.formatFromAst(ast.children[2], sublines)
         lines.push({
           bool_value: evaluateComparison(
             sublines[0].double_value,
@@ -262,8 +279,9 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'comparisonString': {
-        const sublines = []
-        this.processAst(ast.children, sublines)
+        const sublines: any[] = []
+        this.formatFromAst(ast.children[0], sublines)
+        this.formatFromAst(ast.children[2], sublines)
         lines.push({
           bool_value: evaluateComparison(
             sublines[0].string_value,
@@ -274,8 +292,9 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'comparisonByteString': {
-        const sublines = []
-        this.processAst(ast.children, sublines)
+        const sublines: any[] = []
+        this.formatFromAst(ast.children[0], sublines)
+        this.formatFromAst(ast.children[2], sublines)
         lines.push({
           bool_value: evaluateComparison(
             sublines[0].bytes_value,
@@ -286,8 +305,9 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'comparisonBoolean': {
-        const sublines = []
-        this.processAst(ast.children, sublines)
+        const sublines: any[] = []
+        this.formatFromAst(ast.children[0], sublines)
+        this.formatFromAst(ast.children[2], sublines)
         lines.push({
           bool_value: evaluateComparison(
             sublines[0].bool_value,
@@ -298,24 +318,26 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'comparisonNull': {
-        if (ast.children[1].allText !== '==' &&
-            ast.children[1].allText !== '!=') {
+        const op = ast.children[1].allText as Compare
+        if (op !== '==' && op !== '!=') {
           throw new Error(`{ message: "no such overload" }`)
         }
-        const sublines = []
-        this.processAst(ast.children, sublines)
+        const sublines: any[] = []
+        this.formatFromAst(ast.children[0], sublines)
+        this.formatFromAst(ast.children[2], sublines)
         lines.push({
           bool_value: evaluateComparison(
             sublines[0].null_value,
-            ast.children[1].allText,
+            op,
             sublines[1].null_value
           )
         })
         return lines
       }
       case 'deepCompareObj': {
-        const sublines = []
-        this.processAst(ast.children, sublines)
+        const sublines: any[] = []
+        this.formatFromAst(ast.children[0], sublines)
+        this.formatFromAst(ast.children[2], sublines)
         if (sublines[0].list_value) {
           // List eval
           lines.push({
@@ -339,80 +361,74 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'elementInObj': {
-        const sublines = []
+        const sublines: any[] = []
         this.processAst(ast.children, sublines)
-        if (sublines[1].list_value) {
-          // { string_value: 'value' }
-          //   ^^^^^^^^^^^^
-          const key = Object.keys(sublines[0])[0]
-          // { string_value: 'value' }
-          //                 ^^^^^^^
-          const value = Object.values(sublines[0])[0]
-          // List index
-          lines.push({
-            bool_value: (() => {
-              if (sublines[1].list_value.values) {
-                return sublines[1].list_value.values.filter((val: any) => {
-                  if (val[key] === value) return true
-                  return false
-                }).length > 0
+        const elem = sublines[0]
+        const container = sublines[1]
+        const key = elem.string_value !== undefined
+          ? 'string_value'
+          : elem.int64_value !== undefined
+          ? 'int64_value'
+          : elem.uint64_value !== undefined
+          ? 'uint64_value'
+          : elem.double_value !== undefined
+          ? 'double_value'
+          : 'bool_value'
+        const value = elem[key]
+        if (container.list_value) {
+          const values = container.list_value.values
+          let found = false
+          if (values) {
+            for (let i = 0, len = values.length; i < len; i++) {
+              if (values[i][key] === value) {
+                found = true
+                break
               }
-              return false
-            })()
+            }
+          }
+          lines.push({
+            bool_value: found
           })
           return lines
         }
 
         // Is a map
-        // { string_value: 'value' }
-        //                 ^^^^^^^
-        const key = Object.values(sublines[0])[0]
-        lines.push({
-          bool_value: (() => {
-            if (sublines[1].map_value.entries) {
-              return sublines[1].map_value.entries.filter((entry: any) => {
-                if (entry.key.string_value === key) return true
-                return false
-              }).length > 0
+        const entries = container.map_value.entries
+        let found = false
+        if (entries) {
+          for (let i = 0, len = entries.length; i < len; i++) {
+            if (entries[i].key.string_value === value) {
+              found = true
+              break
             }
-            return false
-          })()
+          }
+        }
+        lines.push({
+          bool_value: found
         })
         return lines
       }
       case 'sizeOfObj': {
-        const sublines = []
+        const sublines: any[] = []
         this.processAst(ast.children, sublines)
         if (sublines[0].list_value) {
           // List length
-          if (!sublines[0].list_value.values) {
-            lines.push({
-              int64_value: 0
-            })
-            return lines
-          }
-
+          const values = sublines[0].list_value.values
           lines.push({
-            int64_value: sublines[0].list_value.values.length
+            int64_value: values ? values.length : 0
           })
           return lines
         }
 
         // Is a map
-        if (!sublines[0].map_value.entries) {
-          lines.push({
-            int64_value: 0
-          })
-          return lines
-        }
-
+        const entries = sublines[0].map_value.entries
         lines.push({
-          int64_value: sublines[0].map_value.entries.length
+          int64_value: entries ? entries.length : 0
         })
         return lines
       }
       case 'indexOfObj': {
-        const sublines = []
+        const sublines: any[] = []
         this.processAst(ast.children, sublines)
         const [array, index] = sublines
         if (array.list_value.values.length <= index.int64_value) {
@@ -423,7 +439,7 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'concatObj': {
-        const sublines = []
+        const sublines: any[] = []
         this.processAst(ast.children, sublines)
         const [arrayLeft, arrayRight] = sublines
         const values = []
@@ -449,20 +465,33 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'ternary': {
-        const sublines = []
-        this.processAst(ast.children, sublines)
-        const [boolean, trueValue, falseValue] = sublines
-        lines.push(boolean.bool_value ? trueValue : falseValue)
+        const sublines: any[] = []
+        this.formatFromAst(ast.children[0], sublines)
+        const cond = sublines[0]
+        this.formatFromAst(cond.bool_value ? ast.children[1] : ast.children[2], lines)
         return lines
       }
       case 'logicalAnd': {
-        const sublines = []
-        this.processAst(ast.children, sublines)
-        const booleanMerge = sublines.every((val: any) => {
-          if (val && val.bool_value !== undefined) return val.bool_value
-          if (val && val.null_value !== undefined) return false
-          return Boolean(val)
-        })
+        const children = ast.children
+        const sublines: any[] = []
+        let booleanMerge = true
+        for (let i = 0, len = children.length; i < len; i++) {
+          const prevLen = sublines.length
+          this.formatFromAst(children[i], sublines)
+          for (let j = prevLen; j < sublines.length; j++) {
+            const val = sublines[j]
+            const truthy = val && val.bool_value !== undefined
+              ? val.bool_value
+              : (val && val.null_value !== undefined ? false : Boolean(val))
+            if (!truthy) {
+              booleanMerge = false
+              break
+            }
+          }
+          if (!booleanMerge) {
+            break
+          }
+        }
 
         lines.push({
           bool_value: booleanMerge
@@ -470,13 +499,26 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'logicalOr': {
-        const sublines = []
-        this.processAst(ast.children, sublines)
-        const booleanMerge = sublines.some((val: any) => {
-          if (val && val.bool_value !== undefined) return val.bool_value
-          if (val && val.null_value !== undefined) return false
-          return Boolean(val)
-        })
+        const children = ast.children
+        const sublines: any[] = []
+        let booleanMerge = false
+        for (let i = 0, len = children.length; i < len; i++) {
+          const prevLen = sublines.length
+          this.formatFromAst(children[i], sublines)
+          for (let j = prevLen; j < sublines.length; j++) {
+            const val = sublines[j]
+            const truthy = val && val.bool_value !== undefined
+              ? val.bool_value
+              : (val && val.null_value !== undefined ? false : Boolean(val))
+            if (truthy) {
+              booleanMerge = true
+              break
+            }
+          }
+          if (booleanMerge) {
+            break
+          }
+        }
 
         lines.push({
           bool_value: booleanMerge
@@ -484,15 +526,11 @@ export class TextFormatter extends FormatterBase {
         return lines
       }
       case 'parenthesized': {
-        const sublines = []
-        this.processAst(ast.children, sublines)
-        if (sublines.length > 0) {
-          lines.push(...sublines)
-        }
+        this.processAst(ast.children, lines)
         return lines
       }
       case 'logicalNot': {
-        const sublines = []
+        const sublines: any[] = []
         this.processAst(ast.children, sublines)
         const [condition] = sublines
         if (!('bool_value' in condition)) {

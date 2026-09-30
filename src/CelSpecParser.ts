@@ -8,7 +8,9 @@ export class CelSpecParser implements Parser {
 
   constructor() {
     this.myna = Myna;
-    celSpecGrammar(this.myna)
+    if (!this.myna.parsers['cel-spec']) {
+      celSpecGrammar(this.myna);
+    }
     this.parser = this.myna.parsers['cel-spec'];
   }
 
